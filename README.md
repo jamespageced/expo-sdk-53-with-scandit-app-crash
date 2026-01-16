@@ -30,6 +30,9 @@ Prerequisites and Setup/Run used with Windows 11 OS and android simulator
 ### failure branch
 
 ***Note: This failure is only reproducable after the app is built into an .apk or .ipa. This failure does not reproduce on the android simulator in the development environment.***
+
+***Note2: ensure you re-run the command `npm install`, because the packages for this branch were not added on the main branch***
+
 ***Note2: steps not included for ios, although the app is also crashing on ios devices***
 
 **STEPS TO REPRODUCE ERROR**
