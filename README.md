@@ -33,7 +33,7 @@ Prerequisites and Setup/Run used with Windows 11 OS and android simulator
 
 ***Note2: ensure you re-run the command `npm install`, because the packages for this branch were not added on the main branch***
 
-***Note2: steps not included for ios, although the app is also crashing on ios devices***
+***Note3: steps not included for ios, although the app is also crashing on ios devices***
 
 **STEPS TO REPRODUCE ERROR**
 1. Make sure you are on the failure branch.
