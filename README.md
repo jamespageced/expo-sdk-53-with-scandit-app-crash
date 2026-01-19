@@ -27,7 +27,7 @@ Prerequisites and Setup/Run used with Windows 11 OS and android simulator
   - Execute command: `npm install`
   - Execute command: `npm run dev-android`
 
-### failure branch
+## failure branch or failure-version-8-1-0 branch
 
 ***Note: This failure is only reproducable after the app is built into an .apk or .ipa. This failure does not reproduce on the android simulator in the development environment.***
 
@@ -54,6 +54,6 @@ EXPO_PUBLIC_SCANDIT_LICENSE_KEY="<your scandit license key>"
 7. Tap the button to start scanning
 8. Watch it try to load the scandit screen and crash the app or just show a plain white screen (depending on scandit version/branch used)
 
-### success branch
+## success branch
 
 ToDo...
