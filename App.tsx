@@ -1,21 +1,30 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { ScanPage } from './app/ScanPage';
+import { HomePage } from './app/HomePage';
 
-export default function App(): ReactComponent {
+const Stack = createStackNavigator();
+
+export type RootStackParamList = {
+  home: undefined;
+  scan: undefined;
+};
+
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="home">
+            <Stack.Screen name="home" component={HomePage} options={{ headerShown: false }} />
+            <Stack.Screen name="scan" component={ScanPage} options={{ title: 'Scan' }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
-});
+export default App;
