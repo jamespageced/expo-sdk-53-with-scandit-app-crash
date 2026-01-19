@@ -48,11 +48,11 @@ EXPO_PUBLIC_SCANDIT_LICENSE_KEY="<your scandit license key>"
 ```
 3. On powershell, execute command: `.\setup_ninja.ps1`
   - ***Note: one of the packages has a directory over the max character limit allowed in windows, so this was the recommended workaround. You can read more about this here: https://github.com/expo/expo/issues/36274***
-3. execute command: `npm install`
-3. Use your own expo method to create the .apk file and install it on your mobile android device
-4. Open the app on your mobile device
-5. Tap the button to start scanning
-6. Watch it try to load the scandit screen and crash the app or just show a plain white screen (depending on scandit version/branch used)
+4. execute command: `npm install`
+5. Use your own expo method to create the .apk file and install it on your mobile android device
+6. Open the app on your mobile device
+7. Tap the button to start scanning
+8. Watch it try to load the scandit screen and crash the app or just show a plain white screen (depending on scandit version/branch used)
 
 ### success branch
 
