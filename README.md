@@ -7,25 +7,25 @@ Prerequisites and Setup/Run used with Windows 11 OS and android simulator
 - git
 - Visual Studio Code
 - Nodejs (v24.13.0)
-- java jdk version 17 minimum
+- java jdk (version 17 minimum)
 - android studio similator
 
-## Setup and Run Project
+## Setup Project
 
 - Open powershell in the directory you want to clone the project
 - Execute command: `git clone https://github.com/jamespageced/expo-camera-with-firebase-build-error.git`
 - Execute command: `cd .\expo-camera-with-firebase-build-error\`
-- Execute command: `.\setup_ninja.ps1`
-  - ***Note: one of the packages has a directory over the max character limit allowed in windows, so this was the recommended workaround. You can read more about this here: https://github.com/expo/expo/issues/36274***
-- select the branch("main", or "failure", or "success") to run the project with
+- checkout the branch("main", or "failure", or "success") to run the project with
   - stay on the main branch
   - or
-  - Execute command: `git checkout failure`
+  - Execute command: `git checkout failure` or `git checkout failure-version-8-1-0`
+    - Continue to follow instructions under "failure branch"
   - or
   - Execute command: `git checkout success`
     - note: no solution is yet provided for the issue shown in the failure branch
-- Execute command: `npm install`
-- Execute command: `npm run dev-android`
+- Note: these next steps can be ignored and are only to see if the expo project will run in a local dev environment without scandit
+  - Execute command: `npm install`
+  - Execute command: `npm run dev-android`
 
 ### failure branch
 
@@ -35,19 +35,24 @@ Prerequisites and Setup/Run used with Windows 11 OS and android simulator
 
 ***Note3: steps not included for ios, although the app is also crashing on ios devices***
 
+**Run the build locally
+
 **STEPS TO REPRODUCE ERROR**
 1. Make sure you are on the failure branch.
-2. replace the variable values in the .env file with the values that belong to your licensing
+2. Replace the variable values in the .env file with the values that belong to your licensing
 ```
 EXPO_PUBLIC_APP_BUNDLE_IDENTIFIER="com.company.demo"
 EXPO_PUBLIC_APP_NAME="Demo"
 EXPO_PUBLIC_APP_SLUG="demo"
 EXPO_PUBLIC_SCANDIT_LICENSE_KEY="<your scandit license key>"
 ```
-3. use your own expo method to create the .apk file and install it on your mobile android device
-4. open the app on your mobile device
-5. Tap the button "TAP TO SCAN"
-6. Watch it try to load the scandit screen and crash the app
+3. On powershell, execute command: `.\setup_ninja.ps1`
+  - ***Note: one of the packages has a directory over the max character limit allowed in windows, so this was the recommended workaround. You can read more about this here: https://github.com/expo/expo/issues/36274***
+3. execute command: `npm install`
+3. Use your own expo method to create the .apk file and install it on your mobile android device
+4. Open the app on your mobile device
+5. Tap the button to start scanning
+6. Watch it try to load the scandit screen and crash the app or just show a plain white screen (depending on scandit version/branch used)
 
 ### success branch
 
