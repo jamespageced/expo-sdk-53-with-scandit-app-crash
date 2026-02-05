@@ -1,26 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
-import { requestCameraPermissionsIfNeeded } from './camera-permission-handler';
 
 type HomePageNavigationProp = StackNavigationProp<RootStackParamList, 'home'>;
 
 export const HomePage = () => {
   const navigation = useNavigation<HomePageNavigationProp>();
-  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
   const handleNavigateToScan = async () => {
-    setIsRequestingPermission(true);
-    try {
-      await requestCameraPermissionsIfNeeded();
-      navigation.navigate('scan');
-    } catch (error) {
-      Alert.alert('Camera Permission Required', 'Please grant camera permission to scan barcodes.', [{ text: 'OK' }]);
-    } finally {
-      setIsRequestingPermission(false);
-    }
+    navigation.navigate('scan');
   };
 
   return (
@@ -29,8 +19,8 @@ export const HomePage = () => {
         <Text style={styles.title}>BarcodeCaptureSimple</Text>
         <Text style={styles.subtitle}>Test the most advanced barcode scanning software</Text>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleNavigateToScan} disabled={isRequestingPermission}>
-        <Text style={styles.buttonText}>{isRequestingPermission ? 'Requesting permission...' : 'Start new scan'}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleNavigateToScan}>
+        <Text style={styles.buttonText}>Click&nbsp;To&nbsp;Scan</Text>
       </TouchableOpacity>
     </View>
   );

@@ -15,25 +15,28 @@ export const requestCameraPermissions = async () => {
     try {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Android Camera Permission has been granted.');
-        return Promise.resolve();
+        return Promise.resolve(true);
       } else {
-        console.log('Android Camera Permission has been denied.');
-        return Promise.reject();
+        throw new Error('Android Camera Permission has been denied.');
       }
-    } catch (err) {
-      return Promise.reject(err);
+    } catch (err: any) {
+      throw new Error(err.message);
     }
   } else {
-    return Promise.resolve();
+    return Promise.resolve(true);
   }
 };
 
-export const requestCameraPermissionsIfNeeded = async () => {
-  const hasPermissions = await checkCameraPermissions();
-  if (!hasPermissions) {
-    return requestCameraPermissions();
-  } else {
-    return Promise.resolve();
+export const requestCameraPermissionsIfNeeded = async (): Promise<boolean> => {
+  try {
+    const hasPermissions = await checkCameraPermissions();
+    if (!hasPermissions) {
+      const results = await requestCameraPermissions();
+      return results;
+    } else {
+      return true;
+    }
+  } catch (err: any) {
+    throw new Error(err.message);
   }
 };

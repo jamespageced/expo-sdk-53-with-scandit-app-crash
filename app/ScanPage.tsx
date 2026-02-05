@@ -10,7 +10,6 @@ import {
 } from 'scandit-react-native-datacapture-barcode';
 import {
   Camera,
-  CameraSettings,
   DataCaptureView,
   FrameSourceState,
   RectangularViewfinder,
@@ -18,68 +17,59 @@ import {
   RectangularViewfinderLineStyle,
   VideoResolution
 } from 'scandit-react-native-datacapture-core';
-
+import { useNavigation } from '@react-navigation/native';
 import dataCaptureContext from './CaptureContext';
+import { requestCameraPermissionsIfNeeded } from './camera-permission-handler';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 export const ScanPage = () => {
-  const viewRef = useRef<DataCaptureView>(null);
-  const barcodeCaptureMode = useRef<BarcodeCapture>(null!);
-  if (!barcodeCaptureMode.current) {
-    barcodeCaptureMode.current = setupScanning();
-  }
+  //===========================================================================
+  //================================ variables ================================
+  //===========================================================================
+  const navigation: any = useNavigation<StackNavigationProp<any>>();
+  const refView = useRef<DataCaptureView>(null);
+  const refBarcodeCaptureMode = useRef<BarcodeCapture | null>(null);
+  const refCamera = useRef<Camera | null>(null);
 
-  const camera = useRef<Camera | null>(null);
-
-  const overlayRef = useRef<BarcodeCaptureOverlay>(null!);
-  if (!overlayRef.current) {
-    overlayRef.current = setupOverlay();
-  }
-
-  useEffect(() => {
-    const initCamera = async () => {
-      if (!camera.current) {
-        camera.current = await setupCamera();
-      }
-    };
-
-    initCamera();
-
-    const handleAppStateChangeSubscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      handleAppStateChangeSubscription.remove();
-      stopCapture();
-      dataCaptureContext.removeMode(barcodeCaptureMode.current);
-    };
-  }, []);
-
-  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+  //===========================================================================
+  //================================ functions ================================
+  //===========================================================================
+  const handleAppStateChange = async (nextAppState: AppStateStatus): Promise<void> => {
     if (nextAppState.match(/inactive|background/)) {
-      stopCapture();
+      await stopCapture();
     } else {
-      startCapture();
+      await startCapture();
     }
   };
-
-  async function setupCamera(): Promise<Camera> {
-    // Use the world-facing (back) camera and set it as the frame source of the context. The camera is off by
-    // default and must be turned on to start streaming frames to the data capture context for recognition.
-    const cameraSettings = new CameraSettings();
-    cameraSettings.preferredResolution = VideoResolution.FullHD;
-    const camera = Camera.withSettings(cameraSettings);
-
-    // Camera is null if the camera is not available on the device.
-    if (!camera) {
-      throw new Error('Failed to initialize camera - camera not available on device');
+  //---------------------------------------------------------------------------
+  async function setupCamera(): Promise<void> {
+    try {
+      await requestCameraPermissionsIfNeeded(); // will skip to catch error if user denies permissions
+      // Use the world-facing (back) camera and set it as the frame source of the context. The camera is off by
+      // default and must be turned on to start streaming frames to the data capture context for recognition.
+      const initCamera = Camera.default;
+      // Camera is null if the camera is not available on the device.
+      if (!initCamera) {
+        throw new Error('Failed to initialize camera - camera not available on device');
+      }
+      // Apply settings to the camera
+      const cameraSettings = BarcodeCapture.createRecommendedCameraSettings();
+      cameraSettings.preferredResolution = VideoResolution.FullHD;
+      await initCamera.applySettings(cameraSettings);
+      // Set the camera as the frame source of the data capture context.
+      await dataCaptureContext.setFrameSource(initCamera);
+      // Switch the camera on to start streaming frames and enable the barcode capture mode.
+      await initCamera.switchToDesiredState(FrameSourceState.On);
+      refCamera.current = initCamera;
+      setupScanning();
+      setupOverlay();
+    } catch (err: any) {
+      console.log('error:', err.message);
+      handleGoBack();
     }
-    // Switch the camera on to start streaming frames and enable the barcode capture mode.
-    await camera.switchToDesiredState(FrameSourceState.On);
-    // Set the camera as the frame source of the data capture context.
-    await dataCaptureContext.setFrameSource(camera);
-    return camera;
   }
-
-  function setupScanning(): BarcodeCapture {
+  //---------------------------------------------------------------------------
+  function setupScanning(): void {
     // The barcode capturing process is configured through barcode capture settings
     // and are then applied to the barcode capture instance that manages barcode recognition.
     const settings = new BarcodeCaptureSettings();
@@ -165,57 +155,72 @@ export const ScanPage = () => {
 
     // Set the barcode capture mode to the data capture context.
     dataCaptureContext.setMode(barcodeCapture);
-    return barcodeCapture;
+    refBarcodeCaptureMode.current = barcodeCapture;
   }
-
+  //---------------------------------------------------------------------------
+  function setupOverlay(): void {
+    try {
+      if (!refBarcodeCaptureMode.current) {
+        throw new Error('Cannot setup overlay - BarcodeCapture');
+      }
+      // Add a barcode capture overlay to the data capture view to render the location of captured barcodes on top of
+      // the video preview, using the Frame overlay style. This is optional, but recommended for better visual feedback.
+      const overlay = new BarcodeCaptureOverlay(refBarcodeCaptureMode.current);
+      overlay.viewfinder = new RectangularViewfinder(
+        RectangularViewfinderStyle.Square,
+        RectangularViewfinderLineStyle.Light
+      );
+      refView.current?.addOverlay(overlay);
+    } catch (err: any) {
+      console.log('error:', err.message);
+      handleGoBack();
+    }
+  }
+  //---------------------------------------------------------------------------
   const startCapture = async () => {
-    startCamera();
-    barcodeCaptureMode.current.isEnabled = true;
+    if (refBarcodeCaptureMode.current === null) return;
+    await startCamera();
+    refBarcodeCaptureMode.current.isEnabled = true;
   };
-
-  const stopCapture = () => {
-    barcodeCaptureMode.current.isEnabled = false;
-    stopCamera();
+  //---------------------------------------------------------------------------
+  const stopCapture = async () => {
+    if (refBarcodeCaptureMode.current === null) return;
+    refBarcodeCaptureMode.current.isEnabled = false;
+    await stopCamera();
   };
-
-  const stopCamera = () => {
-    if (camera.current) {
-      camera.current.switchToDesiredState(FrameSourceState.Off);
+  //---------------------------------------------------------------------------
+  const stopCamera = async () => {
+    if (refCamera.current) {
+      await refCamera.current.switchToDesiredState(FrameSourceState.Off);
+    }
+  };
+  //---------------------------------------------------------------------------
+  const startCamera = async () => {
+    if (refCamera.current) {
+      await refCamera.current.switchToDesiredState(FrameSourceState.On);
     }
   };
 
-  const startCamera = () => {
-    if (camera.current) {
-      camera.current.switchToDesiredState(FrameSourceState.On);
-    }
+  //---------------------------------------------------------------------------
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
-  function setupOverlay(): BarcodeCaptureOverlay {
-    if (!barcodeCaptureMode.current) {
-      throw new Error('Cannot setup overlay - BarcodeCapture');
-    }
-    // Add a barcode capture overlay to the data capture view to render the location of captured barcodes on top of
-    // the video preview, using the Frame overlay style. This is optional, but recommended for better visual feedback.
-    const overlay = new BarcodeCaptureOverlay(barcodeCaptureMode.current);
+  //===========================================================================
+  //================================== setup ==================================
+  //===========================================================================
+  useEffect(() => {
+    setupCamera();
+    const handleAppStateChangeSubscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      handleAppStateChangeSubscription.remove();
+      stopCapture();
+      if (refBarcodeCaptureMode.current) dataCaptureContext.removeMode(refBarcodeCaptureMode.current);
+    };
+  }, []);
 
-    overlay.viewfinder = new RectangularViewfinder(
-      RectangularViewfinderStyle.Square,
-      RectangularViewfinderLineStyle.Light
-    );
-
-    return overlay;
-  }
-
-  return (
-    <DataCaptureView
-      style={{ flex: 1 }}
-      context={dataCaptureContext}
-      ref={view => {
-        if (view && !viewRef.current) {
-          view.addOverlay(overlayRef.current);
-          viewRef.current = view;
-        }
-      }}
-    />
-  );
+  //===========================================================================
+  //================================== render =================================
+  //===========================================================================
+  return <DataCaptureView style={{ flex: 1 }} context={dataCaptureContext} ref={refView} />;
 };
